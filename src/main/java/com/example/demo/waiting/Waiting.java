@@ -9,11 +9,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -47,5 +44,37 @@ public class Waiting {
     private LocalDateTime finishedAt;
 
     protected Waiting() {
+    }
+
+    public Waiting(Store store, int ticketNumber, LocalDateTime now) {
+        this.store = store;
+        this.ticketToken = UUID.randomUUID().toString();
+        this.ticketNumber = ticketNumber;
+        this.status = WaitingStatus.WAITING;
+        this.createdAt = now;
+    }
+
+    public void call(LocalDateTime now) {
+        if (status != WaitingStatus.WAITING) {
+            throw new IllegalStateException("대기 중인 손님만 호출할 수 있습니다");
+        }
+        this.status = WaitingStatus.CALLED;
+        this.calledAt = now;
+    }
+
+    public void seat(LocalDateTime now) {
+        if (status != WaitingStatus.CALLED) {
+            throw new IllegalStateException("호출된 손님만 착석 처리할 수 있습니다");
+        }
+        this.status = WaitingStatus.SEATED;
+        this.finishedAt = now;
+    }
+
+    public void cancel(LocalDateTime now) {
+        if (!status.isActive()) {
+            throw new IllegalStateException("이미 종료된 대기입니다");
+        }
+        this.status = WaitingStatus.CANCELED;
+        this.finishedAt = now;
     }
 }

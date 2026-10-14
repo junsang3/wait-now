@@ -48,4 +48,11 @@ public class Store {
         }
         this.openedAt = null;
     }
+
+    public int issue() {
+        if (!isOpen()) {
+            throw new IllegalStateException("영업 중이 아닙니다");
+        }
+        return ++lastTicketNumber;
+    }
 }
