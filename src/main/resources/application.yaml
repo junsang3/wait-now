@@ -7,6 +7,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  mvc:
+    problemdetails:
+      enabled: true
 logging:
   level:
     org.hibernate.SQL: debug
