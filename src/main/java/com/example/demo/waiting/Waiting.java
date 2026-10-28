@@ -26,15 +26,21 @@ public class Waiting {
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
-    @Column(nullable = false, unique = true, length = 36)
-    private String ticketToken;
-
     @Column(nullable = false)
     private int ticketNumber;
+
+    @Column(nullable = false, unique = true, length = 36)
+    private String ticketToken;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 255)
     private WaitingStatus status;
+
+    @Column(nullable = false)
+    private int partySize;
+
+    @Column(nullable = false)
+    private String phoneNumber;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -46,12 +52,46 @@ public class Waiting {
     protected Waiting() {
     }
 
-    public Waiting(Store store, int ticketNumber, LocalDateTime now) {
+    public Waiting(Store store, int ticketNumber, int partySize, String phoneNumber, LocalDateTime now) {
         this.store = store;
-        this.ticketToken = UUID.randomUUID().toString();
         this.ticketNumber = ticketNumber;
+        this.ticketToken = UUID.randomUUID().toString();
         this.status = WaitingStatus.WAITING;
+        this.partySize = partySize;
+        this.phoneNumber = phoneNumber;
         this.createdAt = now;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Store getStore() {
+        return store;
+    }
+
+    public int getTicketNumber() {
+        return ticketNumber;
+    }
+
+    public String getTicketToken() {
+        return ticketToken;
+    }
+
+    public int getPartySize() {
+        return partySize;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public WaitingStatus getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
     public void call(LocalDateTime now) {

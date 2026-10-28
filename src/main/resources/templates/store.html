@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <p th:text="${store.name}">매장이름</p>
+    <p th:text="${store.open ? '영업중' : '영업종료'}"></p>
+    <p th:text="${waitingCount}">현재 웨이팅 팀수</p>
+    <form th:action="@{/waitings}" method="post">
+        <input type="hidden" name="storeId" th:value="${store.id}">
+        <input type="number" name="partySize" value="4">
+        <input type="tel" name="phoneNumber" value="010-1234-5678">
+        <button type="submit">웨이팅 등록하기</button>
+    </form>
+</body>
+</html>

@@ -13,6 +13,10 @@ public class StoreService {
         this.storeRepository = storeRepository;
     }
 
+    public Store findById(Long storeId) {
+        return storeRepository.findById(storeId).orElseThrow();
+    }
+
     public void create(String name) {
         storeRepository.save(new Store(name));
     }

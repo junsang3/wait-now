@@ -30,6 +30,14 @@ public class Store {
         this.name = name;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public boolean isOpen() {
         return openedAt != null;
     }
@@ -38,15 +46,15 @@ public class Store {
         if (isOpen()) {
             throw new IllegalStateException("이미 영업 중입니다");
         }
-        this.lastTicketNumber = 0;
-        this.openedAt = now;
+        lastTicketNumber = 0;
+        openedAt = now;
     }
 
     public void close() {
         if (!isOpen()) {
             throw new IllegalStateException("영업 중이 아닙니다");
         }
-        this.openedAt = null;
+        openedAt = null;
     }
 
     public int issue() {
