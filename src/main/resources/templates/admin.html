@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js" integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg" crossorigin="anonymous"></script>
+    <title>Document</title>
+</head>
+<body>
+    <h1>매장 관리</h1>
+    <p th:text="${store.name}">매장이름</p>
+    <p th:text="${waitingCount}">현재 웨이팅 팀수</p>
+
+    <th:block th:replace="${store.open} ? ~{:: closeStore} : ~{:: openStore}"></th:block>
+
+    <div id="tabs" th:fragment=""></div>
+
+    <th:block th:each="w : ${waitings}">
+        <div th:replace="~{:: waiting(${w})}"></div>
+    </th:block>
+
+    <th:block th:if="false">
+        <button th:fragment="openStore" th:hx-post="@{/stores/{id}/open(id=${store.id})}" hx-swap="outerHTML">
+            접수 열기
+        </button>
+
+        <button th:fragment="closeStore" th:hx-post="@{/stores/{id}/close(id=${store.id})}" hx-swap="outerHTML">
+            접수 닫기
+        </button>
+
+        <div th:fragment="waiting(w)">
+            <span th:text="${w.ticketNumber}">웨이팅 번호</span>
+            <span th:text="${w.status.label}">상태</span>
+            <span th:text="${w.partySize}">인원수</span>
+            <span th:text="${w.phoneNumber}">전화번호</span>
+            <span th:text="${w.createdAt}">등록시간</span>
+            <button>호출</button>
+            <button>착석</button>
+            <button>취소</button>
+        </div>
+    </th:block>
+</body>
+</html>

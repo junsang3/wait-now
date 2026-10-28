@@ -9,7 +9,7 @@
 </head>
 <body>
     <p th:text="${store.name}">매장이름</p>
-    <p th:text="${store.open ? '영업중' : '영업종료'}"></p>
+    <p th:text="${store.open ? '접수중' : '접수종료'}">상태</p>
     <p th:text="${waitingCount}">현재 웨이팅 팀수</p>
     <form th:action="@{/waitings}" method="post">
         <input type="hidden" name="storeId" th:value="${store.id}">

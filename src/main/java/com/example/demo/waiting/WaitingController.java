@@ -2,13 +2,11 @@ package com.example.demo.waiting;
 
 import com.example.demo.store.Store;
 import com.example.demo.store.StoreService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 public class WaitingController {
@@ -29,6 +27,20 @@ public class WaitingController {
         return "store";
     }
 
+    @PostMapping("/stores/{storeId}/open")
+    public String openStore(@PathVariable Long storeId, Model model) {
+        Store store = storeService.open(storeId);
+        model.addAttribute("store", store);
+        return "admin :: closeStore";
+    }
+
+    @PostMapping("/stores/{storeId}/close")
+    public String closeStore(@PathVariable Long storeId, Model model) {
+        Store store = storeService.close(storeId);
+        model.addAttribute("store", store);
+        return "admin :: openStore";
+    }
+
     @GetMapping("/waitings/{ticketToken}")
     public String getWaiting(@PathVariable String ticketToken, Model model) {
         Waiting waiting = waitingService.findByTicketToken(ticketToken);
@@ -42,5 +54,14 @@ public class WaitingController {
     public String createWaiting(@RequestParam Long storeId, @RequestParam int partySize, @RequestParam String phoneNumber) {
         String ticketToken = waitingService.issue(storeId, partySize, phoneNumber);
         return "redirect:/waitings/" + ticketToken;
+    }
+
+    @GetMapping("/admin/stores/{storeId}")
+    public String getAdminStore(@PathVariable Long storeId, Model model) {
+        Store store = storeService.findById(storeId);
+        List<Waiting> waitings = waitingService.getWaitings(storeId, WaitingStatus.WAITING);
+        model.addAttribute("store", store);
+        model.addAttribute("waitings", waitings);
+        return "admin";
     }
 }

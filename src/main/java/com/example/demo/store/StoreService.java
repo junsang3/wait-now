@@ -22,14 +22,16 @@ public class StoreService {
     }
 
     @Transactional
-    public void open(Long storeId) {
+    public Store open(Long storeId) {
         Store store = storeRepository.findById(storeId).orElseThrow();
         store.open(LocalDateTime.now());
+        return store;
     }
 
     @Transactional
-    public void close(Long storeId) {
+    public Store close(Long storeId) {
         Store store = storeRepository.findById(storeId).orElseThrow();
         store.close();
+        return store;
     }
 }

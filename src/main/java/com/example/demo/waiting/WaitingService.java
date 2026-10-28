@@ -22,6 +22,10 @@ public class WaitingService {
         return waitingRepository.findByTicketToken(ticketToken).orElseThrow();
     }
 
+    public List<Waiting> getWaitings(Long storeId, WaitingStatus status) {
+        return waitingRepository.findByStore_IdAndStatus(storeId, status);
+    }
+
     public long getWaitingCount(Long storeId) {
         return waitingRepository.countByStore_IdAndStatusIn(storeId, List.of(WaitingStatus.WAITING, WaitingStatus.CALLED));
     }
