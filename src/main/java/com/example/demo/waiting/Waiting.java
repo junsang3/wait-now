@@ -94,6 +94,14 @@ public class Waiting {
         return createdAt;
     }
 
+    public LocalDateTime getCalledAt() {
+        return calledAt;
+    }
+
+    public LocalDateTime getFinishedAt() {
+        return finishedAt;
+    }
+
     public void call(LocalDateTime now) {
         if (status != WaitingStatus.WAITING) {
             throw new IllegalStateException("대기 중인 손님만 호출할 수 있습니다");
@@ -111,7 +119,7 @@ public class Waiting {
     }
 
     public void cancel(LocalDateTime now) {
-        if (!status.isActive()) {
+        if (!status.canCancel()) {
             throw new IllegalStateException("이미 종료된 대기입니다");
         }
         this.status = WaitingStatus.CANCELED;

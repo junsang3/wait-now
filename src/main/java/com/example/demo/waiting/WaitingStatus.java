@@ -16,7 +16,15 @@ public enum WaitingStatus {
         return label;
     }
 
-    public boolean isActive() {
+    public boolean canCall() {
+        return this == WAITING;
+    }
+
+    public boolean canSeat() {
+        return this == CALLED;
+    }
+
+    public boolean canCancel() {
         return this == WAITING || this == CALLED;
     }
 }

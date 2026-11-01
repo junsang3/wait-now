@@ -2,8 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
 </head>
@@ -15,7 +14,11 @@
     <p th:text="${waiting.partySize}">인원수</p>
     <p th:text="${waiting.phoneNumber}">전화번호</p>
     <p th:text="${waiting.createdAt}">등록시간</p>
-    <p>호출시간</p>
-    <p>착석시간/취소시간</p>
+    <p th:text="${waiting.calledAt}">호출시간</p>
+    <p th:text="${waiting.finishedAt}">착석시간/취소시간</p>
+    <form th:action="@{/waitings/cancel}" method="post">
+        <input type="hidden" name="ticketToken" th:value="${waiting.ticketToken}">
+        <button type="submit">웨이팅 취소</button>
+    </form>
 </body>
 </html>

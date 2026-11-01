@@ -22,8 +22,8 @@ public class WaitingService {
         return waitingRepository.findByTicketToken(ticketToken).orElseThrow();
     }
 
-    public List<Waiting> getWaitings(Long storeId, WaitingStatus status) {
-        return waitingRepository.findByStore_IdAndStatus(storeId, status);
+    public List<Waiting> getWaitings(Long storeId, List<WaitingStatus> statues) {
+        return waitingRepository.findByStore_IdAndStatusIn(storeId, statues);
     }
 
     public long getWaitingCount(Long storeId) {
@@ -41,6 +41,34 @@ public class WaitingService {
         int ticketNumber = store.issue();
         Waiting waiting = waitingRepository.save(new Waiting(store, ticketNumber, partySize, phoneNumber,  LocalDateTime.now()));
         return waiting.getTicketToken();
+    }
+
+    @Transactional
+    public Waiting call(Long waitingId) {
+        Waiting waiting = waitingRepository.findById(waitingId).orElseThrow();
+        waiting.call(LocalDateTime.now());
+        return waiting;
+    }
+
+    @Transactional
+    public Waiting seat(Long waitingId) {
+        Waiting waiting = waitingRepository.findById(waitingId).orElseThrow();
+        waiting.seat(LocalDateTime.now());
+        return waiting;
+    }
+
+    @Transactional
+    public Waiting cancel(Long waitingId) {
+        Waiting waiting = waitingRepository.findById(waitingId).orElseThrow();
+        waiting.cancel(LocalDateTime.now());
+        return waiting;
+    }
+
+    @Transactional
+    public Waiting cancel(String ticketToken) {
+        Waiting waiting = waitingRepository.findByTicketToken(ticketToken).orElseThrow();
+        waiting.cancel(LocalDateTime.now());
+        return waiting;
     }
 
 }
