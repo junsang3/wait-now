@@ -28,14 +28,14 @@ public class WaitingController {
         return "store";
     }
 
-    @PostMapping("/stores/{storeId}/open")
+    @PostMapping("/admin/stores/{storeId}/open")
     public String openStore(@PathVariable Long storeId, Model model) {
         Store store = storeService.open(storeId);
         model.addAttribute("store", store);
         return "admin :: storeToggle";
     }
 
-    @PostMapping("/stores/{storeId}/close")
+    @PostMapping("/admin/stores/{storeId}/close")
     public String closeStore(@PathVariable Long storeId, Model model) {
         Store store = storeService.close(storeId);
         model.addAttribute("store", store);
@@ -76,6 +76,7 @@ public class WaitingController {
     public String getActiveWaitings(@PathVariable Long storeId, Model model) {
         List<Waiting> waitings = waitingService.getWaitings(storeId, List.of(WaitingStatus.WAITING, WaitingStatus.CALLED));
         model.addAttribute("waitings", waitings);
+        model.addAttribute("tab", "active");
         return "admin :: tabs";
     }
 
@@ -83,6 +84,7 @@ public class WaitingController {
     public String getSeatedWaitings(@PathVariable Long storeId, Model model) {
         List<Waiting> waitings = waitingService.getWaitings(storeId, List.of(WaitingStatus.SEATED));
         model.addAttribute("waitings", waitings);
+        model.addAttribute("tab", "seated");
         return "admin :: tabs";
     }
 
@@ -90,6 +92,7 @@ public class WaitingController {
     public String getCanceledWaitings(@PathVariable Long storeId, Model model) {
         List<Waiting> waitings = waitingService.getWaitings(storeId, List.of(WaitingStatus.CANCELED));
         model.addAttribute("waitings", waitings);
+        model.addAttribute("tab", "canceled");
         return "admin :: tabs";
     }
 
