@@ -10,12 +10,12 @@
 <body>
     <p th:text="${store.name}">매장이름</p>
     <p th:text="${store.open ? '웨이팅 접수중' : '웨이팅 접수종료'}">상태</p>
-    <p th:text="${waitingCount}">현재 웨이팅 팀수</p>
+    <p th:text="${waitingCount}">현재 웨이팅 대기 팀수</p>
     <form th:action="@{/waitings}" method="post">
         <input type="hidden" name="storeId" th:value="${store.id}">
         <input type="number" name="partySize" value="4">
         <input type="tel" name="phoneNumber" value="010-1234-5678">
-        <button type="submit">웨이팅 등록하기</button>
+        <button type="submit" th:disabled="${!store.open}">웨이팅 등록하기</button>
     </form>
     <canvas id="qr"></canvas>
     <script>QRCode.toCanvas(document.getElementById("qr"), location.href);</script>

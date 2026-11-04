@@ -28,20 +28,6 @@ public class WaitingController {
         return "store";
     }
 
-    @PostMapping("/admin/stores/{storeId}/open")
-    public String openStore(@PathVariable Long storeId, Model model) {
-        Store store = storeService.open(storeId);
-        model.addAttribute("store", store);
-        return "admin :: storeToggle";
-    }
-
-    @PostMapping("/admin/stores/{storeId}/close")
-    public String closeStore(@PathVariable Long storeId, Model model) {
-        Store store = storeService.close(storeId);
-        model.addAttribute("store", store);
-        return "admin :: storeToggle";
-    }
-
     @GetMapping("/waitings/{ticketToken}")
     public String getWaiting(@PathVariable String ticketToken, Model model) {
         Waiting waiting = waitingService.findByTicketToken(ticketToken);
@@ -70,6 +56,18 @@ public class WaitingController {
         model.addAttribute("store", store);
         model.addAttribute("waitings", waitings);
         return "admin";
+    }
+
+    @PostMapping("/admin/stores/{storeId}/open")
+    public String openStore(@PathVariable Long storeId) {
+        waitingService.openStore(storeId);
+        return "redirect:/admin/stores/" + storeId;
+    }
+
+    @PostMapping("/admin/stores/{storeId}/close")
+    public String closeStore(@PathVariable Long storeId) {
+        waitingService.closeStore(storeId);
+        return "redirect:/admin/stores/" + storeId;
     }
 
     @GetMapping("/admin/stores/{storeId}/active")
@@ -105,15 +103,13 @@ public class WaitingController {
 
     @PostMapping("/admin/waitings/{waitingId}/seat")
     public ResponseEntity<Void> seatWaiting(@PathVariable Long waitingId, Model model) {
-        Waiting waiting = waitingService.seat(waitingId);
-        model.addAttribute("waiting", waiting);
+        waitingService.seat(waitingId);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/admin/waitings/{waitingId}/cancel")
     public ResponseEntity<Void> cancelWaiting(@PathVariable Long waitingId, Model model) {
-        Waiting waiting = waitingService.cancel(waitingId);
-        model.addAttribute("waiting", waiting);
+        waitingService.cancel(waitingId);
         return ResponseEntity.ok().build();
     }
 }

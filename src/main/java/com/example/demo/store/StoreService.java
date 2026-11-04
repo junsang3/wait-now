@@ -16,22 +16,4 @@ public class StoreService {
     public Store findById(Long storeId) {
         return storeRepository.findById(storeId).orElseThrow();
     }
-
-    public void create(String name) {
-        storeRepository.save(new Store(name));
-    }
-
-    @Transactional
-    public Store open(Long storeId) {
-        Store store = storeRepository.findById(storeId).orElseThrow();
-        store.open(LocalDateTime.now());
-        return store;
-    }
-
-    @Transactional
-    public Store close(Long storeId) {
-        Store store = storeRepository.findById(storeId).orElseThrow();
-        store.close();
-        return store;
-    }
 }

@@ -4,15 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0/dist/htmx.min.js" integrity="sha384-BvJpBiO8Kh31EqtJe5DRIeWrHWnCGkwytKs9NKFi86Hhw96dEqdEMzZDeK9iEGTc" crossorigin="anonymous"></script>
-    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.1/dist/htmx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.1/dist/ext/hx-sse.min.js"></script>
 </head>
 <body>
+    <div th:hx-sse:connect="@{/admin/stores/{id}/events(id=${storeId})}" hx-swap="none"></div>
+
     <span th:text="${store.name}">매장이름</span>
-    <th:block th:fragment="storeToggle">
-        <button th:if="${store.open}" th:hx-post="@{/admin/stores/{id}/close(id=${storeId})}" hx-swap="outerHTML">접수 닫기</button>
-        <button th:unless="${store.open}" th:hx-post="@{/admin/stores/{id}/open(id=${storeId})}" hx-swap="outerHTML">접수 열기</button>
-    </th:block>
+
+    <form th:unless="${store.open}"
+          th:action="@{/admin/stores/{id}/open(id=${storeId})}"
+          method="post"
+          onsubmit="return confirm('접수를 열까요?')">
+        <button type="submit">접수 열기</button>
+    </form>
+    <form th:if="${store.open}"
+          th:action="@{/admin/stores/{id}/close(id=${storeId})}"
+          method="post"
+          onsubmit="return confirm('접수를 닫으면 남은 웨이팅이 모두 취소됩니다. 닫을까요?')">
+        <button type="submit">접수 닫기</button>
+    </form>
 
     <div th:fragment="tabs" hx-target:inherited="this" hx-swap:inherited="outerHTML">
         <div>
@@ -32,9 +43,11 @@
                         hx-confirm="웨이팅을 호출할까요?">호출</button>
                 <button th:hx-post="@{/admin/waitings/{id}/seat(id=${waiting.id})}"
                         th:disabled="${!waiting.status.canSeat()}"
+                        hx-swap="delete"
                         hx-confirm="웨이팅을 착석할까요?">착석</button>
                 <button th:hx-post="@{/admin/waitings/{id}/cancel(id=${waiting.id})}"
                         th:disabled="${!waiting.status.canCancel()}"
+                        hx-swap="delete"
                         hx-confirm="웨이팅을 취소할까요?">취소</button>
             </div>
         </th:block>

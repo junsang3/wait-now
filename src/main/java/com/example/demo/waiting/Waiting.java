@@ -103,7 +103,7 @@ public class Waiting {
     }
 
     public void call(LocalDateTime now) {
-        if (status != WaitingStatus.WAITING) {
+        if (!status.canCall()) {
             throw new IllegalStateException("대기 중인 손님만 호출할 수 있습니다");
         }
         this.status = WaitingStatus.CALLED;
@@ -111,7 +111,7 @@ public class Waiting {
     }
 
     public void seat(LocalDateTime now) {
-        if (status != WaitingStatus.CALLED) {
+        if (!status.canSeat()) {
             throw new IllegalStateException("호출된 손님만 착석 처리할 수 있습니다");
         }
         this.status = WaitingStatus.SEATED;

@@ -22,8 +22,8 @@ public class WaitingService {
         return waitingRepository.findByTicketToken(ticketToken).orElseThrow();
     }
 
-    public List<Waiting> getWaitings(Long storeId, List<WaitingStatus> statues) {
-        return waitingRepository.findByStore_IdAndStatusIn(storeId, statues);
+    public List<Waiting> getWaitings(Long storeId, List<WaitingStatus> statuses) {
+        return waitingRepository.findByStore_IdAndStatusIn(storeId, statuses);
     }
 
     public long getWaitingCount(Long storeId) {
@@ -69,6 +69,24 @@ public class WaitingService {
         Waiting waiting = waitingRepository.findByTicketToken(ticketToken).orElseThrow();
         waiting.cancel(LocalDateTime.now());
         return waiting;
+    }
+
+    @Transactional
+    public void openStore(Long storeId) {
+        Store store = storeRepository.findById(storeId).orElseThrow();
+        store.open(LocalDateTime.now());
+    }
+
+    @Transactional
+    public void closeStore(Long storeId) {
+        Store store = storeRepository.findById(storeId).orElseThrow();
+        store.close();
+        List<Waiting> waitings = waitingRepository.findByStore_IdAndStatusIn(
+                storeId, List.of(WaitingStatus.WAITING, WaitingStatus.CALLED)
+        );
+        for (Waiting waiting : waitings) {
+            waiting.cancel(LocalDateTime.now());
+        }
     }
 
 }
