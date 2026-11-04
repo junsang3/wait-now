@@ -4,21 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" href="../static/css/style.css">
+    <title th:text="${waiting.store.name}">Document</title>
 </head>
 <body>
-    <p th:text="${waiting.store.name}">매장이름</p>
-    <p th:text="${waiting.ticketNumber}">웨이팅 번호</p>
-    <p th:text="${waiting.status.label}">상태</p>
-    <p th:text="${position}">순서</p>
-    <p th:text="${waiting.partySize}">인원수</p>
-    <p th:text="${waiting.phoneNumber}">전화번호</p>
-    <p th:text="${waiting.createdAt}">등록시간</p>
-    <p th:text="${waiting.calledAt}">호출시간</p>
-    <p th:text="${waiting.finishedAt}">착석시간/취소시간</p>
-    <form th:action="@{/waitings/cancel}" method="post">
+<main class="container">
+    <section class="card ticket">
+        <h1 class="store-name" th:text="${waiting.store.name}">매장이름</h1>
+        <p class="ticket-label">내 번호표</p>
+        <p class="ticket-number" th:text="${waiting.ticketNumber}">웨이팅 번호</p>
+        <span class="badge"
+              th:classappend="${'status-' + #strings.toLowerCase(waiting.status.name())}"
+              th:text="${waiting.status.label}">상태</span>
+        <p class="ticket-position" th:if="${waiting.status.name() == 'WAITING'}">
+            내 앞에 <strong th:text="${position}">순서</strong>팀 대기 중
+        </p>
+    </section>
+
+    <section class="card">
+        <dl class="info-list">
+            <dt>인원수</dt>
+            <dd th:text="${waiting.partySize + '명'}">인원수</dd>
+            <dt>전화번호</dt>
+            <dd th:text="${waiting.phoneNumber}">전화번호</dd>
+            <dt>등록시간</dt>
+            <dd th:text="${#temporals.format(waiting.createdAt, 'HH:mm')}">등록시간</dd>
+            <th:block th:if="${waiting.calledAt != null}">
+                <dt>호출시간</dt>
+                <dd th:text="${#temporals.format(waiting.calledAt, 'HH:mm')}">호출시간</dd>
+            </th:block>
+            <th:block th:if="${waiting.finishedAt != null}">
+                <dt th:text="${waiting.status.label + '시간'}">착석시간/취소시간</dt>
+                <dd th:text="${#temporals.format(waiting.finishedAt, 'HH:mm')}">착석시간/취소시간</dd>
+            </th:block>
+        </dl>
+    </section>
+
+    <form th:action="@{/waitings/cancel}" method="post" th:if="${waiting.status.canCancel()}"
+          onsubmit="return confirm('웨이팅을 취소할까요?')">
         <input type="hidden" name="ticketToken" th:value="${waiting.ticketToken}">
-        <button type="submit">웨이팅 취소</button>
+        <button class="btn btn-danger btn-block" type="submit">웨이팅 취소</button>
     </form>
+</main>
 </body>
 </html>

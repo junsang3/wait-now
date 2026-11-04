@@ -5,19 +5,45 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-    <title>Document</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" href="../static/css/style.css">
+    <title th:text="${store.name}">Document</title>
 </head>
 <body>
-    <p th:text="${store.name}">매장이름</p>
-    <p th:text="${store.open ? '웨이팅 접수중' : '웨이팅 접수종료'}">상태</p>
-    <p th:text="${waitingCount}">현재 웨이팅 팀수</p>
-    <form th:action="@{/waitings}" method="post">
-        <input type="hidden" name="storeId" th:value="${store.id}">
-        <input type="number" name="partySize" value="4">
-        <input type="tel" name="phoneNumber" value="010-1234-5678">
-        <button type="submit">웨이팅 등록하기</button>
-    </form>
-    <canvas id="qr"></canvas>
-    <script>QRCode.toCanvas(document.getElementById("qr"), location.href);</script>
+<main class="container">
+    <section class="card">
+        <div class="store-header">
+            <h1 class="store-name" th:text="${store.name}">매장이름</h1>
+            <span class="badge"
+                  th:classappend="${store.open ? 'badge-open' : 'badge-closed'}"
+                  th:text="${store.open ? '웨이팅 접수중' : '웨이팅 접수종료'}">상태</span>
+        </div>
+        <div class="stat">
+            <span class="muted">현재 대기</span>
+            <span class="stat-value"><th:block th:text="${waitingCount}">0</th:block><small>팀</small></span>
+        </div>
+    </section>
+
+    <section class="card">
+        <form class="form" th:action="@{/waitings}" method="post">
+            <h2 class="form-title">웨이팅 등록</h2>
+            <input type="hidden" name="storeId" th:value="${store.id}">
+            <div class="field">
+                <label for="partySize">인원수</label>
+                <input class="input" id="partySize" type="number" name="partySize" value="4" min="1" inputmode="numeric">
+            </div>
+            <div class="field">
+                <label for="phoneNumber">전화번호</label>
+                <input class="input" id="phoneNumber" type="tel" name="phoneNumber" value="010-1234-5678" inputmode="tel">
+            </div>
+            <button class="btn btn-primary btn-block" type="submit" th:disabled="${!store.open}">웨이팅 등록하기</button>
+        </form>
+    </section>
+
+    <section class="qr">
+        <canvas id="qr"></canvas>
+        <span class="muted">QR을 찍으면 이 페이지로 이동해요</span>
+    </section>
+</main>
+<script>QRCode.toCanvas(document.getElementById("qr"), location.href, {margin: 2, width: 160});</script>
 </body>
 </html>
