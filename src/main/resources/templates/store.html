@@ -4,15 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.1/dist/htmx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.1/dist/ext/hx-sse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <title>Document</title>
 </head>
 <body>
+    <div th:hx-sse:connect="@{/stores/{id}/events(id=${storeId})}" hx-swap="none" hx-config="sse.pauseOnBackground:false"></div>
     <p th:text="${store.name}">매장이름</p>
     <p th:text="${store.open ? '웨이팅 접수중' : '웨이팅 접수종료'}">상태</p>
-    <p th:text="${waitingCount}">현재 웨이팅 대기 팀수</p>
+    <p th:fragment="waitingCount"
+       th:text="${waitingCount}"
+       th:hx-get="@{/stores/{id}/waitingCount(id=${storeId})}"
+       hx-swap="outerHTML"
+       hx-trigger="waiting-changed from:body">현재 웨이팅 대기 팀수</p>
     <form th:action="@{/waitings}" method="post">
-        <input type="hidden" name="storeId" th:value="${store.id}">
+        <input type="hidden" name="storeId" th:value="${storeId}">
         <input type="number" name="partySize" value="4">
         <input type="tel" name="phoneNumber" value="010-1234-5678">
         <button type="submit" th:disabled="${!store.open}">웨이팅 등록하기</button>

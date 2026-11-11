@@ -32,6 +32,19 @@ public class WaitingController {
         return "store";
     }
 
+    @GetMapping("/stores/{storeId}/waitingCount")
+    public String getStoreWaitingCount(@PathVariable Long storeId, Model model) {
+        long waitingCount = waitingService.getWaitingCount(storeId);
+        model.addAttribute("waitingCount", waitingCount);
+        return "store :: waitingCount";
+    }
+
+    @GetMapping(value = "/stores/{storeId}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @ResponseBody
+    public SseEmitter subscribeStore(@PathVariable Long storeId) {
+        return emitters.subscribe(storeId);
+    }
+
     @GetMapping("/waitings/{ticketToken}")
     public String getWaiting(@PathVariable String ticketToken, Model model) {
         Waiting waiting = waitingService.findByTicketToken(ticketToken);

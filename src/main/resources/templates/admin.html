@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.1/dist/ext/hx-sse.min.js"></script>
 </head>
 <body>
-    <div th:hx-sse:connect="@{/admin/stores/{id}/events(id=${storeId})}" hx-swap="none"></div>
+    <div th:hx-sse:connect="@{/admin/stores/{id}/events(id=${storeId})}" hx-swap="none" hx-config="sse.pauseOnBackground:false"></div>
 
     <span th:text="${store.name}">매장이름</span>
 
