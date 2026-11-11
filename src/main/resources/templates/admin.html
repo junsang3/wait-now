@@ -25,32 +25,33 @@
         <button type="submit">접수 닫기</button>
     </form>
 
-    <div th:fragment="tabs" hx-target:inherited="this" hx-swap:inherited="outerHTML">
+    <div th:fragment="tabs"
+         th:hx-get="${tabUrl}"
+         hx-trigger="waiting-changed from:body"
+         hx-target:inherited="this"
+         hx-swap:inherited="outerHTML">
         <div>
             <button th:hx-get="@{/admin/stores/{id}/active(id=${storeId})}">웨이팅 중</button>
             <button th:hx-get="@{/admin/stores/{id}/seated(id=${storeId})}">착석</button>
             <button th:hx-get="@{/admin/stores/{id}/canceled(id=${storeId})}">취소</button>
         </div>
-        <th:block th:each="waiting : ${waitings}">
-            <div th:fragment="waiting" hx-target:inherited="this">
-                <span th:text="${waiting.ticketNumber}">웨이팅 번호</span>
-                <span th:text="${waiting.status.label}">상태</span>
-                <span th:text="${waiting.partySize}">인원수</span>
-                <span th:text="${waiting.phoneNumber}">전화번호</span>
-                <span th:text="${waiting.createdAt}">등록시간</span>
-                <button th:hx-post="@{/admin/waitings/{id}/call(id=${waiting.id})}"
-                        th:disabled="${!waiting.status.canCall()}"
-                        hx-confirm="웨이팅을 호출할까요?">호출</button>
-                <button th:hx-post="@{/admin/waitings/{id}/seat(id=${waiting.id})}"
-                        th:disabled="${!waiting.status.canSeat()}"
-                        hx-swap="delete"
-                        hx-confirm="웨이팅을 착석할까요?">착석</button>
-                <button th:hx-post="@{/admin/waitings/{id}/cancel(id=${waiting.id})}"
-                        th:disabled="${!waiting.status.canCancel()}"
-                        hx-swap="delete"
-                        hx-confirm="웨이팅을 취소할까요?">취소</button>
-            </div>
-        </th:block>
+        <div th:each="waiting : ${waitings}" hx-swap:inherited="none">
+            <span th:text="${waiting.ticketNumber}">웨이팅 번호</span>
+            <span th:text="${waiting.status.label}">상태</span>
+            <span th:text="${waiting.partySize}">인원수</span>
+            <span th:text="${waiting.phoneNumber}">전화번호</span>
+            <span th:text="${waiting.createdAt}">등록시간</span>
+            <button th:hx-post="@{/admin/waitings/{id}/call(id=${waiting.id})}"
+                    th:disabled="${!waiting.status.canCall()}"
+                    hx-confirm="웨이팅을 호출할까요?">호출</button>
+            <button th:hx-post="@{/admin/waitings/{id}/seat(id=${waiting.id})}"
+                    th:disabled="${!waiting.status.canSeat()}"
+                    hx-confirm="웨이팅을 착석할까요?">착석</button>
+            <button th:hx-post="@{/admin/waitings/{id}/cancel(id=${waiting.id})}"
+                    th:disabled="${!waiting.status.canCancel()}"
+                    hx-confirm="웨이팅을 취소할까요?">취소</button>
+        </div>
     </div>
+
 </body>
 </html>

@@ -2,10 +2,12 @@ package com.example.demo.waiting;
 
 import com.example.demo.store.Store;
 import com.example.demo.store.StoreService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
@@ -13,10 +15,12 @@ import java.util.List;
 public class WaitingController {
     private final StoreService storeService;
     private final WaitingService waitingService;
+    private final WaitingSseEmitters emitters;
 
-    public WaitingController(StoreService storeService, WaitingService waitingService) {
+    public WaitingController(StoreService storeService, WaitingService waitingService, WaitingSseEmitters emitters) {
         this.storeService = storeService;
         this.waitingService = waitingService;
+        this.emitters = emitters;
     }
 
     @GetMapping("/stores/{storeId}")
@@ -40,14 +44,17 @@ public class WaitingController {
     @PostMapping("/waitings")
     public String createWaiting(@RequestParam Long storeId, @RequestParam int partySize, @RequestParam String phoneNumber) {
         String ticketToken = waitingService.issue(storeId, partySize, phoneNumber);
+        emitters.send(storeId);
         return "redirect:/waitings/" + ticketToken;
     }
 
     @PostMapping("/waitings/cancel")
     public String cancelWaiting(@RequestParam String ticketToken) {
         Waiting waiting = waitingService.cancel(ticketToken);
+        emitters.send(waiting.getStore().getId());
         return "redirect:/stores/" + waiting.getStore().getId();
     }
+
 
     @GetMapping("/admin/stores/{storeId}")
     public String getAdminStore(@PathVariable Long storeId, Model model) {
@@ -55,7 +62,14 @@ public class WaitingController {
         List<Waiting> waitings = waitingService.getWaitings(storeId, List.of(WaitingStatus.WAITING, WaitingStatus.CALLED));
         model.addAttribute("store", store);
         model.addAttribute("waitings", waitings);
+        model.addAttribute("tabUrl", "/admin/stores/" + storeId + "/active");
         return "admin";
+    }
+
+    @GetMapping(value = "/admin/stores/{storeId}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @ResponseBody
+    public SseEmitter subscribe(@PathVariable Long storeId) {
+        return emitters.subscribe(storeId);
     }
 
     @PostMapping("/admin/stores/{storeId}/open")
@@ -74,7 +88,7 @@ public class WaitingController {
     public String getActiveWaitings(@PathVariable Long storeId, Model model) {
         List<Waiting> waitings = waitingService.getWaitings(storeId, List.of(WaitingStatus.WAITING, WaitingStatus.CALLED));
         model.addAttribute("waitings", waitings);
-        model.addAttribute("tab", "active");
+        model.addAttribute("tabUrl", "/admin/stores/" + storeId + "/active");
         return "admin :: tabs";
     }
 
@@ -82,7 +96,7 @@ public class WaitingController {
     public String getSeatedWaitings(@PathVariable Long storeId, Model model) {
         List<Waiting> waitings = waitingService.getWaitings(storeId, List.of(WaitingStatus.SEATED));
         model.addAttribute("waitings", waitings);
-        model.addAttribute("tab", "seated");
+        model.addAttribute("tabUrl", "/admin/stores/" + storeId + "/seated");
         return "admin :: tabs";
     }
 
@@ -90,26 +104,29 @@ public class WaitingController {
     public String getCanceledWaitings(@PathVariable Long storeId, Model model) {
         List<Waiting> waitings = waitingService.getWaitings(storeId, List.of(WaitingStatus.CANCELED));
         model.addAttribute("waitings", waitings);
-        model.addAttribute("tab", "canceled");
+        model.addAttribute("tabUrl", "/admin/stores/" + storeId + "/canceled");
         return "admin :: tabs";
     }
 
     @PostMapping("/admin/waitings/{waitingId}/call")
-    public String callWaiting(@PathVariable Long waitingId, Model model) {
+    public ResponseEntity<Void> callWaiting(@PathVariable Long waitingId, Model model) {
         Waiting waiting = waitingService.call(waitingId);
+        emitters.send(waiting.getStore().getId());
         model.addAttribute("waiting", waiting);
-        return "admin :: waiting";
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/admin/waitings/{waitingId}/seat")
     public ResponseEntity<Void> seatWaiting(@PathVariable Long waitingId, Model model) {
-        waitingService.seat(waitingId);
+        Waiting waiting = waitingService.seat(waitingId);
+        emitters.send(waiting.getStore().getId());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/admin/waitings/{waitingId}/cancel")
     public ResponseEntity<Void> cancelWaiting(@PathVariable Long waitingId, Model model) {
-        waitingService.cancel(waitingId);
+        Waiting waiting = waitingService.cancel(waitingId);
+        emitters.send(waiting.getStore().getId());
         return ResponseEntity.ok().build();
     }
 }
