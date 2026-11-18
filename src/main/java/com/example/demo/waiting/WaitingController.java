@@ -68,6 +68,10 @@ public class WaitingController {
         return "redirect:/stores/" + waiting.getStore().getId();
     }
 
+    @GetMapping("/login")
+    public String getLogin(Model model) {
+        return "login";
+    }
 
     @GetMapping("/admin/stores/{storeId}")
     public String getAdminStore(@PathVariable Long storeId, Model model) {

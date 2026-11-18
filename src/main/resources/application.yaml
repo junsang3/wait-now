@@ -10,6 +10,9 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  security:
+    user:
+      password: 1234
 logging:
   level:
     org.hibernate.SQL: debug
