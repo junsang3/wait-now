@@ -1,19 +1,32 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <title>관리자 로그인</title>
 </head>
 <body>
-<div th:if="${param.error}">아이디 또는 비밀번호가 올바르지 않습니다.</div>
-<div th:if="${param.logout}">로그아웃되었습니다.</div>
-<form th:action="@{/login}" method="post">
-    <input type="text" name="username">
-    <input type="password" name="password">
-    <button type="submit">로그인</button>
-</form>
+<main class="page page--center">
+    <section class="card">
+        <p class="eyebrow">wait-now</p>
+        <h1 class="title" style="margin-bottom: 24px">관리자 로그인</h1>
+        <form class="form" th:action="@{/login}" method="post">
+            <div class="alert alert--error" th:if="${param.error}">아이디 또는 비밀번호가 올바르지 않습니다.</div>
+            <div class="alert alert--info" th:if="${param.logout}">로그아웃되었습니다.</div>
+            <label class="field">
+                <span class="field__label">아이디</span>
+                <input class="input" type="text" name="username" autocomplete="username" autofocus required>
+            </label>
+            <label class="field">
+                <span class="field__label">비밀번호</span>
+                <input class="input" type="password" name="password" autocomplete="current-password" required>
+            </label>
+            <button class="btn btn--primary btn--block" type="submit">로그인</button>
+        </form>
+    </section>
+</main>
 </body>
 </html>

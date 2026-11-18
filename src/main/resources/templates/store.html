@@ -7,24 +7,52 @@
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.1/dist/htmx.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.1/dist/ext/hx-sse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-    <title>Document</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <title th:text="${store.name} + ' 웨이팅'">웨이팅</title>
 </head>
 <body>
-    <div th:hx-sse:connect="@{/stores/{id}/events(id=${storeId})}" hx-swap="none" hx-config="sse.pauseOnBackground:false"></div>
-    <p th:text="${store.name}">매장이름</p>
-    <p th:text="${store.open ? '웨이팅 접수중' : '웨이팅 접수종료'}">상태</p>
-    <p th:fragment="waitingCount"
-       th:text="${waitingCount}"
-       th:hx-get="@{/stores/{id}/waitingCount(id=${storeId})}"
-       hx-swap="outerHTML"
-       hx-trigger="waiting-changed from:body">현재 웨이팅 대기 팀수</p>
-    <form th:action="@{/waitings}" method="post">
-        <input type="hidden" name="storeId" th:value="${storeId}">
-        <input type="number" name="partySize" value="4">
-        <input type="tel" name="phoneNumber" value="010-1234-5678">
-        <button type="submit" th:disabled="${!store.open}">웨이팅 등록하기</button>
-    </form>
-    <canvas id="qr"></canvas>
-    <script>QRCode.toCanvas(document.getElementById("qr"), location.href);</script>
+<main class="page">
+    <div class="sse" th:hx-sse:connect="@{/stores/{id}/events(id=${storeId})}" hx-swap="none" hx-config="sse.pauseOnBackground:false"></div>
+
+    <section class="card">
+        <div class="store-head">
+            <span class="pill"
+                  th:classappend="${store.open} ? 'pill--open' : 'pill--closed'"
+                  th:text="${store.open ? '웨이팅 접수중' : '웨이팅 접수종료'}">상태</span>
+            <h1 class="title" th:text="${store.name}">매장이름</h1>
+        </div>
+        <div class="stat">
+            <span class="stat__label">현재 대기</span>
+            <p class="stat__value"
+               th:fragment="waitingCount"
+               th:hx-get="@{/stores/{id}/waitingCount(id=${storeId})}"
+               hx-swap="outerHTML"
+               hx-trigger="waiting-changed from:body"><span th:text="${waitingCount}">0</span><small>팀</small></p>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2 class="card__title">웨이팅 등록</h2>
+        <form class="form" th:action="@{/waitings}" method="post">
+            <input type="hidden" name="storeId" th:value="${storeId}">
+            <label class="field">
+                <span class="field__label">인원수</span>
+                <input class="input" type="number" name="partySize" value="4" min="1" max="99" inputmode="numeric" required>
+            </label>
+            <label class="field">
+                <span class="field__label">전화번호</span>
+                <input class="input" type="tel" name="phoneNumber" value="010-1234-5678" placeholder="010-0000-0000" inputmode="tel" required>
+            </label>
+            <button class="btn btn--primary btn--block" type="submit" th:disabled="${!store.open}"
+                    th:text="${store.open ? '웨이팅 등록하기' : '지금은 접수하지 않아요'}">웨이팅 등록하기</button>
+        </form>
+    </section>
+
+    <section class="card qr">
+        <h2 class="card__title">QR로 이 페이지 열기</h2>
+        <canvas id="qr"></canvas>
+    </section>
+</main>
+<script>QRCode.toCanvas(document.getElementById("qr"), location.href, {width: 200, margin: 1});</script>
 </body>
 </html>
