@@ -2,12 +2,14 @@ package com.example.demo.waiting;
 
 import com.example.demo.store.Store;
 import com.example.demo.store.StoreService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import tools.jackson.databind.JsonNode;
 
 import java.util.List;
 
@@ -16,6 +18,9 @@ public class WaitingController {
     private final StoreService storeService;
     private final WaitingService waitingService;
     private final WaitingSseEmitters emitters;
+
+    @Value("${vapid.public-key}")
+    private String vapidPublicKey;
 
     public WaitingController(StoreService storeService, WaitingService waitingService, WaitingSseEmitters emitters) {
         this.storeService = storeService;
@@ -51,6 +56,7 @@ public class WaitingController {
         long position = waitingService.getPosition(waiting.getStore().getId(), waiting.getId());
         model.addAttribute("waiting", waiting);
         model.addAttribute("position", position);
+        model.addAttribute("vapidPublicKey", vapidPublicKey);
         return "waiting";
     }
 
@@ -66,6 +72,15 @@ public class WaitingController {
         Waiting waiting = waitingService.cancel(ticketToken);
         emitters.send(waiting.getStore().getId());
         return "redirect:/stores/" + waiting.getStore().getId();
+    }
+
+    @PostMapping("/waitings/{ticketToken}/subscribe")
+    public ResponseEntity<Void> subscribePush(@PathVariable String ticketToken, @RequestBody JsonNode body) {
+        String endpoint = body.get("endpoint").asString();
+        String p256dh = body.get("keys").get("p256dh").asString();
+        String auth = body.get("keys").get("auth").asString();
+        waitingService.subscribePush(ticketToken, endpoint, p256dh, auth);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/login")
@@ -129,7 +144,7 @@ public class WaitingController {
     public ResponseEntity<Void> callWaiting(@PathVariable Long waitingId, Model model) {
         Waiting waiting = waitingService.call(waitingId);
         emitters.send(waiting.getStore().getId());
-        model.addAttribute("waiting", waiting);
+        waitingService.sendPush(waiting);
         return ResponseEntity.ok().build();
     }
 

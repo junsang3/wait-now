@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>Document</title>
 </head>
 <body>
@@ -20,5 +22,38 @@
         <input type="hidden" name="ticketToken" th:value="${waiting.ticketToken}">
         <button type="submit">웨이팅 취소</button>
     </form>
+    <button type="button" onclick="subscribe()">착석 알림 받기</button>
+    <script th:inline="javascript">
+        const publicKey = [[${vapidPublicKey}]]
+        const ticketToken = [[${waiting.ticketToken}]];
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        async function subscribe() {
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            const permission = await Notification.requestPermission();
+            console.log(permission);
+            if (permission !== 'granted') return alert('알림 권한을 허용해주세요');
+
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(publicKey),
+            });
+            console.log(subscription);
+
+            await fetch(`/waitings/${ticketToken}/subscribe`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+                body: JSON.stringify(subscription),
+            })
+
+        }
+
+        function urlBase64ToUint8Array(base64) {
+            const padding = '='.repeat((4 - (base64.length % 4)) % 4);
+            const raw = atob((base64 + padding).replace(/-/g, '+').replace(/_/g, '/'));
+            return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+        }
+    </script>
 </body>
 </html>

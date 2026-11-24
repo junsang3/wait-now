@@ -42,6 +42,15 @@ public class Waiting {
     @Column(nullable = false)
     private String phoneNumber;
 
+    @Column
+    private String pushEndpoint;
+
+    @Column
+    private String pushP256dh;
+
+    @Column
+    private String pushAuth;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -90,6 +99,18 @@ public class Waiting {
         return status;
     }
 
+    public String getPushEndpoint() {
+        return pushEndpoint;
+    }
+
+    public String getPushP256dh() {
+        return pushP256dh;
+    }
+
+    public String getPushAuth() {
+        return pushAuth;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -124,5 +145,11 @@ public class Waiting {
         }
         this.status = WaitingStatus.CANCELED;
         this.finishedAt = now;
+    }
+
+    public void setPush(String endpoint, String p256dh, String auth) {
+        this.pushEndpoint = endpoint;
+        this.pushP256dh = p256dh;
+        this.pushAuth = auth;
     }
 }

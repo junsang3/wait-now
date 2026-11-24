@@ -1,6 +1,8 @@
 spring:
   application:
     name: demo
+  config:
+    import: optional:file:.env[.properties]
   jpa:
     hibernate:
       ddl-auto: update
@@ -17,3 +19,7 @@ logging:
   level:
     org.hibernate.SQL: debug
     org.hibernate.orm.jdbc.bind: trace
+vapid:
+  public-key: ${VAPID_PUBLIC_KEY}
+  private-key: ${VAPID_PRIVATE_KEY}
+  subject: mailto:you@example.com
