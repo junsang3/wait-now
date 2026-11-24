@@ -10,23 +10,52 @@
     <meta name="theme-color" content="#ffffff">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
-    <title>Document</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <title>내 웨이팅</title>
 </head>
 <body>
-    <p th:text="${waiting.store.name}">매장이름</p>
-    <p th:text="${waiting.ticketNumber}">웨이팅 번호</p>
-    <p th:text="${waiting.status.label}">상태</p>
-    <p th:text="${position}">내 순서</p>
-    <p th:text="${waiting.partySize}">인원수</p>
-    <p th:text="${waiting.phoneNumber}">전화번호</p>
-    <p th:text="${waiting.createdAt}">등록시간</p>
-    <p th:text="${waiting.calledAt}">호출시간</p>
-    <p th:text="${waiting.finishedAt}">착석시간/취소시간</p>
-    <form th:action="@{/waitings/cancel}" method="post" onsubmit="return confirm('웨이팅을 취소할까요?')">
-        <input type="hidden" name="ticketToken" th:value="${waiting.ticketToken}">
-        <button type="submit">웨이팅 취소</button>
-    </form>
-    <button type="button" onclick="subscribe()">착석 알림 받기</button>
+    <main class="page">
+        <section class="card ticket" th:classappend="${waiting.status.name() == 'CALLED'} ? 'is-called'">
+            <p class="muted" th:text="${waiting.store.name}">매장이름</p>
+            <p class="big-number" th:text="${waiting.ticketNumber}">0</p>
+            <span class="badge"
+                  th:classappend="${'status-' + #strings.toLowerCase(waiting.status.name())}"
+                  th:text="${waiting.status.label}">상태</span>
+            <p th:if="${waiting.status.name() == 'WAITING'}">
+                내 순서 <strong th:text="${position}">1</strong>번째
+            </p>
+            <p th:if="${waiting.status.name() == 'CALLED'}"><strong>지금 입장해주세요!</strong></p>
+        </section>
+
+        <section class="card">
+            <dl class="info-list">
+                <dt>인원수</dt>
+                <dd th:text="${waiting.partySize} + '명'">4명</dd>
+                <dt>전화번호</dt>
+                <dd th:text="${waiting.phoneNumber}">010-0000-0000</dd>
+                <dt>등록시간</dt>
+                <dd th:text="${#temporals.format(waiting.createdAt, 'HH:mm')}">12:00</dd>
+                <th:block th:if="${waiting.calledAt != null}">
+                    <dt>호출시간</dt>
+                    <dd th:text="${#temporals.format(waiting.calledAt, 'HH:mm')}">12:00</dd>
+                </th:block>
+                <th:block th:if="${waiting.finishedAt != null}">
+                    <dt th:text="${waiting.status.name() == 'SEATED' ? '착석시간' : '취소시간'}">종료시간</dt>
+                    <dd th:text="${#temporals.format(waiting.finishedAt, 'HH:mm')}">12:00</dd>
+                </th:block>
+            </dl>
+        </section>
+
+        <div class="actions">
+            <button th:if="${waiting.status.name() == 'WAITING'}" class="btn btn-primary btn-block"
+                    type="button" onclick="subscribe()">호출 알림 받기</button>
+            <form th:if="${waiting.status.canCancel()}" th:action="@{/waitings/cancel}" method="post"
+                  onsubmit="return confirm('웨이팅을 취소할까요?')">
+                <input type="hidden" name="ticketToken" th:value="${waiting.ticketToken}">
+                <button class="btn btn-danger btn-block" type="submit">웨이팅 취소</button>
+            </form>
+        </div>
+    </main>
 
     <script th:inline="javascript">
         const publicKey = [[${vapidPublicKey}]]
@@ -34,24 +63,49 @@
         const csrfToken = document.querySelector('meta[name="_csrf"]').content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
+        function isIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent)
+                || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS
+        }
+
+        function isStandalone() {
+            return window.navigator.standalone === true
+                || window.matchMedia('(display-mode: standalone)').matches;
+        }
+
         async function subscribe() {
-            const registration = await navigator.serviceWorker.register('/sw.js');
-            const permission = await Notification.requestPermission();
-            console.log(permission);
-            if (permission !== 'granted') return alert('알림 권한을 허용해주세요');
+            // iOS는 홈 화면에 추가한 웹앱에서만 푸시 알림을 받을 수 있어요 (iOS 16.4+)
+            if (isIOS() && !isStandalone()) {
+                return alert('아이폰에서는 홈 화면에 추가해야 알림을 받을 수 있어요.\n\n'
+                    + '하단의 공유 버튼(□↑) → "홈 화면에 추가"를 누른 뒤, '
+                    + '홈 화면의 아이콘으로 다시 열어서 알림 받기를 눌러주세요.');
+            }
+            if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+                return alert('이 브라우저는 알림을 지원하지 않아요.');
+            }
 
-            const subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(publicKey),
-            });
-            console.log(subscription);
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js');
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') return alert('알림 권한을 허용해주세요');
 
-            await fetch(`/waitings/${ticketToken}/subscribe`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
-                body: JSON.stringify(subscription),
-            })
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(publicKey),
+                });
 
+                const res = await fetch(`/waitings/${ticketToken}/subscribe`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+                    body: JSON.stringify(subscription),
+                });
+                if (!res.ok) throw new Error(`subscribe failed: ${res.status}`);
+
+                alert('알림 신청이 완료됐어요! 순서가 되면 알림으로 알려드릴게요.');
+            } catch (e) {
+                console.error(e);
+                alert('알림 신청에 실패했어요. 잠시 후 다시 시도해주세요.');
+            }
         }
 
         function urlBase64ToUint8Array(base64) {
