@@ -22,7 +22,7 @@ public class SecurityConfig {
                         .loginProcessingUrl("/login")
                         .usernameParameter("username")
                         .passwordParameter("password")
-                        .defaultSuccessUrl("/", false)
+                        .defaultSuccessUrl("/admin/stores/1", false)
                         .failureUrl("/login?error")
                         .permitAll()
                 );

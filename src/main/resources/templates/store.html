@@ -24,6 +24,7 @@
         <input type="tel" name="phoneNumber" value="010-1234-5678">
         <button type="submit" th:disabled="${!store.open}">웨이팅 등록하기</button>
     </form>
+    <a th:href="@{/admin/stores/{id}(id=${storeId})}">admin</a>
     <canvas id="qr"></canvas>
     <script>QRCode.toCanvas(document.getElementById("qr"), location.href);</script>
 </body>

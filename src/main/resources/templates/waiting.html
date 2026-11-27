@@ -26,7 +26,8 @@
         <input type="hidden" name="ticketToken" th:value="${waiting.ticketToken}">
         <button type="submit">웨이팅 취소</button>
     </form>
-    <button type="button" onclick="subscribe()">착석 알림 받기</button>
+    <button type="button" onclick="subscribe()">호출 알림 받기</button>
+    <a th:href="@{/admin/stores/{id}(id=${waiting.store.id})}">admin</a>
 
     <script th:inline="javascript">
         const publicKey = [[${vapidPublicKey}]]
@@ -34,24 +35,49 @@
         const csrfToken = document.querySelector('meta[name="_csrf"]').content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
+        function isIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent)
+                || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS
+        }
+
+        function isStandalone() {
+            return window.matchMedia('(display-mode: standalone)').matches
+                || window.navigator.standalone === true;
+        }
+
         async function subscribe() {
-            const registration = await navigator.serviceWorker.register('/sw.js');
-            const permission = await Notification.requestPermission();
-            console.log(permission);
-            if (permission !== 'granted') return alert('알림 권한을 허용해주세요');
+            // iOS는 홈 화면에 추가된 웹앱에서만 웹 푸시를 지원한다 (iOS 16.4+)
+            if (isIOS() && !isStandalone()) {
+                return alert('iPhone에서는 홈 화면에 추가해야 알림을 받을 수 있어요.\n\n'
+                    + '하단 공유 버튼(□↑) → "홈 화면에 추가"를 누른 뒤,\n'
+                    + '홈 화면의 아이콘으로 다시 들어와 알림 받기를 눌러주세요.');
+            }
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                return alert('이 브라우저는 알림을 지원하지 않아요.');
+            }
 
-            const subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(publicKey),
-            });
-            console.log(subscription);
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js');
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') return alert('알림 권한을 허용해주세요');
 
-            await fetch(`/waitings/${ticketToken}/subscribe`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
-                body: JSON.stringify(subscription),
-            })
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(publicKey),
+                });
 
+                const res = await fetch(`/waitings/${ticketToken}/subscribe`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+                    body: JSON.stringify(subscription),
+                });
+                if (!res.ok) throw new Error(`subscribe failed: ${res.status}`);
+
+                alert('알림 신청이 완료됐어요. 호출되면 알림으로 알려드릴게요.');
+            } catch (e) {
+                console.error(e);
+                alert('알림 신청에 실패했어요. 다시 시도해주세요.');
+            }
         }
 
         function urlBase64ToUint8Array(base64) {
