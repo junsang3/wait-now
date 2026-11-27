@@ -56,7 +56,8 @@ public class WaitingService {
 
     @Transactional
     public String issue(Long storeId, int partySize, String phoneNumber) {
-        Store store = storeRepository.findById(storeId).orElseThrow();
+//        Store store = storeRepository.findById(storeId).orElseThrow();
+        Store store = storeRepository.findByIdForUpdate(storeId).orElseThrow();
         int ticketNumber = store.issue();
         Waiting waiting = waitingRepository.save(new Waiting(store, ticketNumber, partySize, phoneNumber,  LocalDateTime.now()));
         return waiting.getTicketToken();
@@ -92,13 +93,13 @@ public class WaitingService {
 
     @Transactional
     public void openStore(Long storeId) {
-        Store store = storeRepository.findById(storeId).orElseThrow();
+        Store store = storeRepository.findByIdForUpdate(storeId).orElseThrow();
         store.open(LocalDateTime.now());
     }
 
     @Transactional
     public void closeStore(Long storeId) {
-        Store store = storeRepository.findById(storeId).orElseThrow();
+        Store store = storeRepository.findByIdForUpdate(storeId).orElseThrow();
         store.close();
         List<Waiting> waitings = waitingRepository.findByStore_IdAndStatusIn(
                 storeId, List.of(WaitingStatus.WAITING, WaitingStatus.CALLED)

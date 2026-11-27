@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: 'mysql:latest'
+    image: 'mysql:9'
     environment:
       - 'MYSQL_DATABASE=mydatabase'
       - 'MYSQL_PASSWORD=secret'
